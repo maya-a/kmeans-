@@ -22,28 +22,31 @@ def files_to_dataframe(file_name_1,file_name_2):
     file2 = pd.read_csv(file_name_2, names=size)
 
     data = pd.merge(file1, file2, on ='0')
-    data=data.drop(['0'],axis=1)
-    return data.to_numpy()
+    #data=data.drop(['0'],axis=1)
+    return data
 
 def kmeanspp(matrix, k):
     matrix_idx = range(len(matrix))
     first_idx = np.random.choice(matrix_idx)
     centroids = []
+    init_idx = []
+    init_idx.append(first_idx)
     centroids.append(matrix[first_idx])
     while (len(centroids)<k):
         D = np.full((len(matrix)),float('inf'))
         for l,datapoint in enumerate(matrix):
-            for j,centroid in enumerate(centroids):
-                dist = calculate_distance(centroid, datapoint)
-                if (dist<D[l]):
-                    D[l] = dist
+            dist = [calculate_distance(centroid, datapoint) for j,centroid in enumerate(centroids)]
+            D[l] = min(dist)
         Dm = sum(D)
         P = [D[i]/Dm for i in matrix_idx]
         idx_chosen = np.random.choice(matrix_idx, p=P)
-        print(idx_chosen)
+        init_idx.append(idx_chosen)
+        #print(idx_chosen)
         centroids.append(matrix[idx_chosen])
         init_centroids = np.stack(centroids)
-    return init_centroids
+    print("initialized  indexes of centroids"+" ".join(str(init_idx))) # 
+
+    return init_idx
 
 def calculate_distance(centroid, data_point):
     return sum([pow(centroid[i]-data_point[i],2) for i in range(len(centroid))])
@@ -62,11 +65,42 @@ def check_is_natural(num):
         invalid_input()
 
 def main():
-    k = 3
-    file_name_1 = "test_data\input_1_db_1.txt"
-    file_name_2 = "test_data\input_1_db_2.txt"
-    input_matrix = files_to_dataframe(file_name_1, file_name_2)
-    centroids = kmeanspp(input_matrix,3)
-    print(centroids)
+    #try:
+        check_is_natural(sys.argv[1])
+        k=int(sys.argv[1])
+        max_iter=300
+        if(len(sys.argv)==5):
+            epsilon=sys.argv[2]
+            file_name_1=sys.argv[3]
+            file_name_2=sys.argv[4]
+            
+        elif (len(sys.argv)==6):
+            check_is_natural(sys.argv[2])
+            max_iter=int(sys.argv[2])
+            epsilon=sys.argv[3]
+            file_name_1=sys.argv[4]
+            file_name_2=sys.argv[5]
+        else: 
+            invalid_input()
+         #k = 3
+        #file_name_1 = "input_1_db_1.txt"
+        #file_name_2 = "input_1_db_2.txt"
+        input_data = files_to_dataframe(file_name_1, file_name_2)
+        data = input_data.drop(['0'],axis=1)
+        input_matrix = data.to_numpy()
+        centroids = kmeanspp(input_matrix,k)
+
+        idxs = kmeanspp(input_matrix,k) #initialize centroids 
+        convert_indexes=[]
+        for i,centroid_idx in (idxs):
+            convert_indexes[i]=data['0'][centroid_idx]
+        print(convert_indexes)
+        #print(centroids)
+    
+    #except Exception as e:
+        print("An Error Has Occurred\n")
+        exit()
+    
+   
 
 main()
