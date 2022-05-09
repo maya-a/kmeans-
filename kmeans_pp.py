@@ -27,21 +27,26 @@ def files_to_dataframe(file_name_1,file_name_2):
 
 def kmeanspp(matrix, k):
     matrix_idx = range(len(matrix))
+    if (k>len(matrix)):
+        invalid_input()
     first_idx = np.random.choice(matrix_idx)
     centroids = []
     init_idx = []
     init_idx.append(first_idx)
+    print("appended first centroid "+"".join(str(first_idx)))
     centroids.append(matrix[first_idx])
+    print("first centroid"+"".join(str(matrix[first_idx])))
     while (len(centroids)<k):
         D = np.full((len(matrix)),float('inf'))
         for l,datapoint in enumerate(matrix):
             dist = [calculate_distance(centroid, datapoint) for j,centroid in enumerate(centroids)]
-            D[l] = min(dist)
+            D[l] = min(dist)   
+        print(D[:5])
         Dm = sum(D)
         P = [D[i]/Dm for i in matrix_idx]
         idx_chosen = np.random.choice(matrix_idx, p=P)
         init_idx.append(idx_chosen)
-        #print(idx_chosen)
+        print(idx_chosen)
         centroids.append(matrix[idx_chosen])
         init_centroids = np.stack(centroids)
     print("initialized  indexes of centroids"+" ".join(str(init_idx))) # 
@@ -64,12 +69,22 @@ def check_is_natural(num):
     if val_f!=val_int or val_int<=0:
         invalid_input()
 
+def check_is_float(num):
+    try:
+        # Convert it into float
+        
+        val_f = float(num)
+
+    except ValueError:
+        invalid_input()
+
 def main():
     #try:
         check_is_natural(sys.argv[1])
         k=int(sys.argv[1])
         max_iter=300
         if(len(sys.argv)==5):
+            check_is_float(sys.argv[2])
             epsilon=sys.argv[2]
             file_name_1=sys.argv[3]
             file_name_2=sys.argv[4]
@@ -77,6 +92,7 @@ def main():
         elif (len(sys.argv)==6):
             check_is_natural(sys.argv[2])
             max_iter=int(sys.argv[2])
+            check_is_float(sys.argv[2])
             epsilon=sys.argv[3]
             file_name_1=sys.argv[4]
             file_name_2=sys.argv[5]
@@ -88,18 +104,20 @@ def main():
         input_data = files_to_dataframe(file_name_1, file_name_2)
         data = input_data.drop(['0'],axis=1)
         input_matrix = data.to_numpy()
-        centroids = kmeanspp(input_matrix,k)
+        #centroids = kmeanspp(input_matrix,k)
 
         idxs = kmeanspp(input_matrix,k) #initialize centroids 
-        convert_indexes=[]
-        for i,centroid_idx in (idxs):
-            convert_indexes[i]=data['0'][centroid_idx]
+        convert_indexes=[None]*k
+        print(idxs)
+        for i,centroid_idx in enumerate(idxs):
+            convert_indexes[i]=input_data['0'][centroid_idx]
+           
         print(convert_indexes)
         #print(centroids)
     
     #except Exception as e:
-        print("An Error Has Occurred\n")
-        exit()
+        # print("An Error Has Occurred\n")
+        # exit()
     
    
 
